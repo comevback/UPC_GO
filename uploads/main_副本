@@ -1,0 +1,10 @@
+package main
+
+import (
+	"UPC-GO/apis"
+)
+
+func main() {
+	// StartServer(":4000")
+	apis.StartServer(":4000")
+}

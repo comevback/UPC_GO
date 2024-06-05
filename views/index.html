@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation</title>
+    <link rel="stylesheet" href="/static/styles/styles.css">
+</head>
+
+<body>
+    <header>
+        <h1>API Documentation</h1>
+    </header>
+    <main>
+        <section id="basic-endpoint">
+            <h2>Basic Endpoint</h2>
+            <article><strong> GET /</strong> ---- This endpoint returns a documentation for the API Server.</article>
+        </section>
+
+        <section id="file-endpoints">
+            <h2>File Endpoints</h2>
+            <article id="upload-file">
+                <h3>Upload File</h3>
+                <p><strong>POST /files</strong> ---- This endpoint allows a user to upload a file.</p>
+                <p><code>curl -X POST http://localhost:port/files -F "file=@/path/to/file"</code></p>
+            </article>
+
+            <article id="get-files">
+                <h3>Get Files</h3>
+                <p><strong>GET /files</strong> ---- This endpoint lists all files uploaded by a user.</p>
+                <p><code>curl -X GET http://localhost:port/files</code></p>
+            </article>
+
+            <article id="delete-file">
+                <h3>Delete File</h3>
+                <p><strong>DELETE /files/:filename</strong> ---- This endpoint deletes a specific file.</p>
+                <p><code>curl -X DELETE http://localhost:port/files/{:fileId}</code></p>
+            </article>
+
+            <article id="generate-docker-image">
+                <h3>Generate Docker Image</h3>
+                <p><strong>POST /api/files/{filename}</strong> ---- This endpoint accepts a .zip file upload, unzips it,
+                    and generates a Docker image from the contents.</p>
+                <p><code>curl -X POST http://localhost:port/api/files/{:filename} -F "file=@{path_to_your_zip_file}"</code>
+                </p>
+            </article>
+        </section>
+
+        <section id="image-endpoints">
+            <h2>Image Endpoints</h2>
+            <article id="upload-image">
+                <h3>Upload Image</h3>
+                <p><strong>POST /images</strong> ---- This endpoint allows a user to upload an image.</p>
+                <p><code>curl -X POST http://localhost:port/images -F "image=@/path/to/image"</code></p>
+            </article>
+
+            <article id="get-images">
+                <h3>Get Images</h3>
+                <p><strong>GET /images</strong> ---- This endpoint retrieves all images uploaded by a user.</p>
+                <p><code>curl -X GET http://localhost:port/images</code></p>
+            </article>
+
+            <article id="delete-image">
+                <h3>Delete Image</h3>
+                <p><strong>DELETE /images/:imageName</strong> ---- This endpoint deletes a specific image.</p>
+                <p><code>curl -X DELETE http://localhost:port/images/{:imageId}</code></p>
+            </article>
+        </section>
+
+        <section id="result-endpoints">
+            <h2>Result Endpoints</h2>
+            <article id="get-results">
+                <h3>Get Results</h3>
+                <p><strong>GET /results</strong> ---- This endpoint retrieves all results for a user or a task.</p>
+                <p><code>curl -X GET http://localhost:port/results</code></p>
+            </article>
+
+            <article id="delete-result">
+                <h3>Delete Result</h3>
+                <p><strong>DELETE /results/:filename</strong> ---- This endpoint deletes a specific result.</p>
+                <p><code>curl -X DELETE http://localhost:port/results/{:resultId}</code></p>
+            </article>
+        </section>
+    </main>
+    <footer>
+        <p>API Documentation - © 2024</p>
+    </footer>
+</body>
+
+</html>
