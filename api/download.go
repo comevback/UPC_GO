@@ -65,8 +65,8 @@ func MultiDownloader(w http.ResponseWriter, r *http.Request) {
 	Cors(w)
 	method := r.Method
 
-	// 如果是GET请求，下载多个文件
-	if method == http.MethodGet {
+	// 如果是Post请求，下载多个文件
+	if method == http.MethodPost {
 		var requestData struct {
 			Files []string `json:"fileNames"`
 		}
@@ -101,7 +101,6 @@ func MultiDownloader(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Error opening the file: "+file, http.StatusInternalServerError)
 				return
 			}
-			defer srcFile.Close()
 
 			// 创建zip文件条目
 			zipEntry, err := zipWriter.Create(file)
@@ -112,6 +111,7 @@ func MultiDownloader(w http.ResponseWriter, r *http.Request) {
 
 			// 将文件内容写入zip条目
 			_, err = io.Copy(zipEntry, srcFile)
+			srcFile.Close() // 在每次循环结束时关闭文件
 			if err != nil {
 				http.Error(w, "Error writing the file: "+file, http.StatusInternalServerError)
 				return

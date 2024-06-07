@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
+	"strings"
 )
 
 // get /api/files 是获取所有文件的列表
@@ -21,7 +23,7 @@ import (
 // cors 跨域请求
 func Cors(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 }
 
@@ -106,7 +108,7 @@ func ResultsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 下载一个文件或删除一个文件
+// ************************************************  下载一个文件或删除一个文件  ************************************************
 func FileProcessor(w http.ResponseWriter, r *http.Request) {
 	Cors(w)
 	method := r.Method
@@ -114,6 +116,11 @@ func FileProcessor(w http.ResponseWriter, r *http.Request) {
 	// 如果是GET请求，下载文件
 	if method == http.MethodGet {
 		SingleDownloader(w, r)
+	}
+
+	// 如果是POST请求，对于上传的zip文件，解压并利用 buildpack 创建一个docker image
+	if method == http.MethodPost {
+		ImageBuilder(w, r)
 	}
 
 	// 如果是DELETE请求，删除文件
@@ -136,4 +143,60 @@ func ResultProcessor(w http.ResponseWriter, r *http.Request) {
 	if method == http.MethodDelete {
 		SingleResultDeleter(w, r)
 	}
+}
+
+// 利用 buildpack 创建一个docker image
+func ImageBuilder(w http.ResponseWriter, r *http.Request) {
+	Cors(w)
+
+	// 解析参数
+	params := strings.Split(r.URL.Path, "/")
+	filename := params[len(params)-1]         // 获取docker image 的名称
+	filePosition := filepath + "/" + filename // 找到上传的文件位置
+
+	// 检查文件是否是zip文件, 如果不是则返回错误
+	if !strings.HasSuffix(filename, ".zip") {
+		http.Error(w, "Error: not a zip file", http.StatusBadRequest)
+		return
+	}
+
+	destPosition := filepath + "/" + strings.TrimSuffix(filename, ".zip")
+
+	// 解压文件
+	err := UnzipWithExec(filePosition, filepath)
+	if err != nil {
+		http.Error(w, "Error unzipping file", http.StatusInternalServerError)
+		return
+	}
+	fmt.Println("Unzip success: ", filename)
+
+	// 通过 exec 执行 buildpack 创建docker image
+	trimedName := strings.TrimSuffix(filename, ".zip")
+	lowerName := strings.ToLower(trimedName)
+	cmd := exec.Command("pack", "build", lowerName, "--path", destPosition, "--builder", "paketobuildpacks/builder-jammy-base")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		http.Error(w, "Error building image: "+string(output), http.StatusInternalServerError)
+		return
+	}
+
+	// 删除解压后的文件夹
+	os.RemoveAll(destPosition)
+	fmt.Println("Removed: ", destPosition)
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("Build success: " + filename)
+}
+
+// 用Exec执行unzip命令解压文件
+func UnzipWithExec(filePosition, unzipPosition string) error {
+	cmd := exec.Command("unzip", "-o", filePosition, "-d", unzipPosition)
+	fmt.Println("Trying to unzip file: ", filePosition)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Println("Error unzipping file: ", err)
+		return err
+	}
+	fmt.Println("Unzip success: ", string(output))
+	return nil
 }

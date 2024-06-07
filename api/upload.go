@@ -11,6 +11,13 @@ import (
 // 上传单个或多个文件
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	Cors(w)
+
+	// 如果是OPTIONS预检请求，返回200
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	// 必须是POST请求
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -25,7 +32,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 解析请求
-	err := r.ParseMultipartForm(100 << 20) // 10MB
+	err := r.ParseMultipartForm(100 << 20) // 100MB
 	if err != nil {
 		http.Error(w, "Error parsing form: "+err.Error(), http.StatusBadRequest)
 		return
@@ -52,11 +59,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 
 		// 创建目标文件
-		uploadsDir := "./uploads"
-		if _, err := os.Stat(uploadsDir); os.IsNotExist(err) {
-			os.Mkdir(uploadsDir, os.ModePerm)
-		}
-		dstPath := filepath + "/" + fileHeader.Filename
+		dstPath := targetPath + "/" + fileHeader.Filename
 		dst, err := os.Create(dstPath)
 		if err != nil {
 			http.Error(w, "Error creating the file", http.StatusInternalServerError)
@@ -74,6 +77,5 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		uploadedFiles = append(uploadedFiles, fileHeader.Filename)
 	}
 	//fmt.Println("Uploaded files: ", uploadedFiles)
-
 	json.NewEncoder(w).Encode(uploadedFiles)
 }
