@@ -4,6 +4,7 @@ import (
 	"UPC-GO/api"
 	"UPC-GO/register"
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,7 +15,29 @@ import (
 )
 
 func main() {
-	success := register.RegisterService()
+	// 定义一个命令行参数，用于指定端口
+	inputPort := flag.String("p", "4000", "port to listen on")
+	flag.Parse()
+
+	// 设置默认端口
+	port := "4000"
+
+	// 如果命令行参数 -p 被指定，则使用命令行参数
+	if *inputPort != "4000" {
+		port = *inputPort
+	} else {
+		// 否则检查环境变量 API_PORT
+		envPort := os.Getenv("API_PORT")
+		if envPort != "" {
+			port = envPort
+		}
+	}
+
+	addr := ":" + port
+	log.Println("Starting server on : " + port)
+
+	// 注册服务
+	success := register.RegisterService(port)
 	if success {
 		fmt.Println("Service registered successfully")
 	} else {
@@ -28,21 +51,20 @@ func main() {
 	defer ticker.Stop()
 
 	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				success := register.SendHeartbeat()
-				if success {
-					fmt.Println("Heartbeat sent successfully")
-				} else {
-					fmt.Println("Failed to send heartbeat")
-				}
+		for range ticker.C {
+			success := register.SendHeartbeat()
+			if success {
+				// 当前时间
+				timeNow := time.Now().Format("2006-01-02 15:04:05")
+				fmt.Println("Heartbeat sent successfully -- " + timeNow)
+			} else {
+				fmt.Println("Failed to send heartbeat")
 			}
 		}
 	}()
 
-	log.Println("Starting server on :4000")
-	if err := StartServer(":4000"); err != nil {
+	// 启动服务器
+	if err := StartServer(addr); err != nil {
 		log.Fatalf("ListenAndServe: %v", err)
 	}
 }

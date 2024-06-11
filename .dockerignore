@@ -1,0 +1,8 @@
+node_modules
+.git
+.env
+*.pem
+*.key
+*.pub
+*.log
+.DS_Store

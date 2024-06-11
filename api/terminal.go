@@ -25,7 +25,7 @@ type Message struct {
 func getAvailableShell() string {
 	shell := os.Getenv("SHELL")
 	if shell == "" {
-		shell = "/bin/bash"
+		shell = "/bin/zsh"
 	}
 	return shell
 }

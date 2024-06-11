@@ -61,6 +61,7 @@ func GetHostInfo() (map[string]interface{}, error) {
 	// 获取CPU架构和数量
 	architecture := runtime.GOARCH
 	cpus := runtime.NumCPU()
+	ip := GetLocalIP()
 
 	// 获取主机名
 	hostname, err := os.Hostname()
@@ -74,6 +75,7 @@ func GetHostInfo() (map[string]interface{}, error) {
 
 	return map[string]interface{}{
 		"hostname":     hostname,
+		"ip":           ip,
 		"architecture": architecture,
 		"cpus":         cpus,
 		"platform":     platform,

@@ -1,0 +1,17 @@
+# 使用官方的 Golang 镜像作为基础镜像
+FROM golang:1.22-alpine
+
+# 设置工作目录
+WORKDIR /usr/src/app
+
+# 将当前目录内容复制到工作目录中
+COPY . .
+
+# 下载依赖
+RUN go mod download
+
+# 暴露应用程序端口
+EXPOSE 4000
+
+# 使用 go run 命令运行应用程序
+CMD ["go", "run", "main.go"]
